@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alex Chen — DevOps Engineer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c10;
+    --surface: #11141a;
+    --surface2: #181c24;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --accent: #00e5a0;
+    --accent2: #0af;
+    --text: #e8eaf0;
+    --muted: #7a8099;
+    --dim: #3a3f52;
+    --serif: 'DM Serif Display', Georgia, serif;
+    --sans: 'Outfit', sans-serif;
+    --mono: 'DM Mono', monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* ── GRID NOISE BACKGROUND ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,229,160,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,160,0.03) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .page {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 0 2rem 6rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── HEADER ── */
+  header {
+    padding: 4rem 0 3rem;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 2rem;
+    align-items: end;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+
+  header::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 120px;
+    height: 1px;
+    background: var(--accent);
+  }
+
+  .header-eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .header-eyebrow::before {
+    content: '';
+    width: 24px;
+    height: 1px;
+    background: var(--accent);
+  }
+
+  h1 {
+    font-family: var(--serif);
+    font-size: clamp(42px, 7vw, 68px);
+    font-weight: 400;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    margin-bottom: 1rem;
+  }
+
+  h1 em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .header-sub {
+    font-size: 14px;
+    color: var(--muted);
+    max-width: 420px;
+    line-height: 1.7;
+  }
+
+  .header-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-end;
+    min-width: 180px;
+  }
+
+  .status-dot {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+  }
+
+  .status-dot::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 3px rgba(0,229,160,0.15);
+    animation: pulse 2.5s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 3px rgba(0,229,160,0.15); }
+    50% { box-shadow: 0 0 0 7px rgba(0,229,160,0.05); }
+  }
+
+  .location {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: var(--mono);
+  }
+
+  /* ── CONTACT STRIP ── */
+  .contact-strip {
+    display: flex;
+    gap: 2rem;
+    padding: 1.25rem 0;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+
+  .contact-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .contact-item:hover { color: var(--accent); }
+
+  .contact-item svg { opacity: 0.5; flex-shrink: 0; }
+  .contact-item:hover svg { opacity: 1; }
+
+  /* ── METRICS ROW ── */
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 2.5rem 0;
+  }
+
+  .metric {
+    background: var(--surface);
+    padding: 1.5rem;
+    text-align: center;
+  }
+
+  .metric-num {
+    font-family: var(--serif);
+    font-size: 36px;
+    color: var(--text);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .metric-num span {
+    color: var(--accent);
+  }
+
+  .metric-lbl {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-family: var(--mono);
+  }
+
+  /* ── SECTION HEADING ── */
+  .section {
+    margin-top: 3.5rem;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.75rem;
+  }
+
+  .section-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+  }
+
+  .section-title {
+    font-family: var(--serif);
+    font-size: 26px;
+    font-weight: 400;
+    color: var(--text);
+  }
+
+  .section-line {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── ABOUT ── */
+  .about-text {
+    font-size: 16px;
+    color: #b0b5c9;
+    line-height: 1.85;
+    max-width: 680px;
+    border-left: 2px solid var(--accent);
+    padding-left: 1.5rem;
+  }
+
+  /* ── SKILLS ── */
+  .skills-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  .skill-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
+    transition: border-color 0.2s;
+  }
+
+  .skill-card:hover {
+    border-color: var(--border2);
+  }
+
+  .skill-card-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .skill-card-label::before {
+    content: '';
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  .skill-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 3px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    letter-spacing: 0.03em;
+    transition: all 0.15s;
+  }
+
+  .tag:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(0,229,160,0.05);
+  }
+
+  /* ── EXPERIENCE ── */
+  .exp-list { display: flex; flex-direction: column; gap: 0; }
+
+  .exp-item {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 2rem;
+    padding: 2rem 0;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+
+  .exp-item:last-child { border-bottom: none; }
+
+  .exp-date-col {
+    padding-top: 3px;
+  }
+
+  .exp-period {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.8;
+  }
+
+  .exp-current {
+    display: inline-block;
+    margin-top: 6px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--accent);
+    border: 1px solid rgba(0,229,160,0.3);
+    padding: 2px 8px;
+    border-radius: 2px;
+    letter-spacing: 0.08em;
+  }
+
+  .exp-role { font-size: 17px; font-weight: 500; color: var(--text); margin-bottom: 3px; }
+
+  .exp-company {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 1rem;
+    font-family: var(--mono);
+  }
+
+  .exp-bullets {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .exp-bullets li {
+    font-size: 13.5px;
+    color: #8a90a8;
+    padding-left: 1.1rem;
+    position: relative;
+    line-height: 1.65;
+  }
+
+  .exp-bullets li::before {
+    content: '▸';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-size: 10px;
+    top: 4px;
+  }
+
+  .exp-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 1rem;
+  }
+
+  .exp-tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 2px;
+    background: rgba(0,170,255,0.07);
+    border: 1px solid rgba(0,170,255,0.15);
+    color: var(--accent2);
+    letter-spacing: 0.05em;
+  }
+
+  /* ── CERTIFICATIONS ── */
+  .cert-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+
+  .cert-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .cert-card:hover {
+    border-color: var(--border2);
+    transform: translateY(-2px);
+  }
+
+  .cert-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), transparent);
+  }
+
+  .cert-provider {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 0.5rem;
+  }
+
+  .cert-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1.4;
+    margin-bottom: 0.75rem;
+  }
+
+  .cert-year {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+  }
+
+  /* ── EDUCATION ── */
+  .edu-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem;
+  }
+
+  .edu-degree { font-size: 17px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+  .edu-school { font-size: 13px; color: var(--muted); font-family: var(--mono); }
+  .edu-year { font-family: var(--mono); font-size: 12px; color: var(--muted); white-space: nowrap; }
+
+  /* ── FOOTER ── */
+  footer {
+    margin-top: 5rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .footer-name {
+    font-family: var(--serif);
+    font-size: 20px;
+    color: var(--dim);
+  }
+
+  .footer-copy {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--dim);
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  header   { animation: fadeUp 0.6s ease both; }
+  .contact-strip { animation: fadeUp 0.6s 0.1s ease both; }
+  .metrics { animation: fadeUp 0.6s 0.2s ease both; }
+  .section { animation: fadeUp 0.6s 0.3s ease both; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 680px) {
+    header { grid-template-columns: 1fr; }
+    .header-meta { align-items: flex-start; }
+    .metrics { grid-template-columns: repeat(2, 1fr); }
+    .skills-grid { grid-template-columns: 1fr; }
+    .cert-grid { grid-template-columns: 1fr; }
+    .exp-item { grid-template-columns: 1fr; gap: 0.5rem; }
+    .edu-card { flex-direction: column; align-items: flex-start; }
+    h1 { font-size: 38px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <header>
+    <div>
+      <div class="header-eyebrow">DevOps Engineer · Platform Engineering</div>
+      <h1>Alex <em>Chen</em></h1>
+      <p class="header-sub">Building the invisible backbone that keeps modern software alive — from zero-downtime deployments to self-healing infrastructure at scale.</p>
+    </div>
+    <div class="header-meta">
+      <div class="status-dot">Available for work</div>
+      <div class="location">📍 San Francisco, CA</div>
+    </div>
+  </header>
+
+  <!-- CONTACT -->
+  <div class="contact-strip">
+    <a href="mailto:alex.chen@email.com" class="contact-item">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 7 9-7"/></svg>
+      alex.chen@email.com
+    </a>
+    <a href="#" class="contact-item">
+      <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      github.com/alexchen
+    </a>
+    <a href="#" class="contact-item">
+      <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+      linkedin.com/in/alexchen
+    </a>
+    <a href="#" class="contact-item">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 000 20M12 2a14.5 14.5 0 010 20M2 12h20"/></svg>
+      alexchen.dev
+    </a>
+  </div>
+
+  <!-- METRICS -->
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-num">8<span>+</span></div>
+      <div class="metric-lbl">Years experience</div>
+    </div>
+    <div class="metric">
+      <div class="metric-num">50<span>+</span></div>
+      <div class="metric-lbl">Prod deployments</div>
+    </div>
+    <div class="metric">
+      <div class="metric-num">99<span>.97%</span></div>
+      <div class="metric-lbl">Uptime delivered</div>
+    </div>
+    <div class="metric">
+      <div class="metric-num">3</div>
+      <div class="metric-lbl">Certifications</div>
+    </div>
+  </div>
+
+  <!-- ABOUT -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <h2 class="section-title">About</h2>
+      <div class="section-line"></div>
+    </div>
+    <p class="about-text">
+      Senior DevOps engineer with 8+ years designing and operating cloud-native infrastructure at scale. I specialize in turning complex, brittle systems into reliable, self-healing platforms — eliminating toil, compressing release cycles, and giving engineering teams back the time they need to build. Deep expertise across AWS and GCP, with a particular passion for GitOps, observability engineering, and platform product thinking.
+    </p>
+  </div>
+
+  <!-- SKILLS -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">02</span>
+      <h2 class="section-title">Skills &amp; Tooling</h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="skills-grid">
+      <div class="skill-card">
+        <div class="skill-card-label">Cloud Platforms</div>
+        <div class="skill-tags">
+          <span class="tag">AWS</span><span class="tag">GCP</span><span class="tag">Azure</span>
+          <span class="tag">EC2</span><span class="tag">EKS</span><span class="tag">GKE</span><span class="tag">CloudFront</span>
+        </div>
+      </div>
+      <div class="skill-card">
+        <div class="skill-card-label">Containers &amp; Orchestration</div>
+        <div class="skill-tags">
+          <span class="tag">Kubernetes</span><span class="tag">Docker</span><span class="tag">Helm</span>
+          <span class="tag">ArgoCD</span><span class="tag">Flux</span><span class="tag">Istio</span>
+        </div>
+      </div>
+      <div class="skill-card">
+        <div class="skill-card-label">Infrastructure as Code</div>
+        <div class="skill-tags">
+          <span class="tag">Terraform</span><span class="tag">Pulumi</span><span class="tag">Ansible</span>
+          <span class="tag">CloudFormation</span><span class="tag">CDK</span>
+        </div>
+      </div>
+      <div class="skill-card">
+        <div class="skill-card-label">CI/CD Pipelines</div>
+        <div class="skill-tags">
+          <span class="tag">GitHub Actions</span><span class="tag">Jenkins</span>
+          <span class="tag">GitLab CI</span><span class="tag">CircleCI</span><span class="tag">Tekton</span>
+        </div>
+      </div>
+      <div class="skill-card">
+        <div class="skill-card-label">Observability</div>
+        <div class="skill-tags">
+          <span class="tag">Prometheus</span><span class="tag">Grafana</span><span class="tag">Datadog</span>
+          <span class="tag">OpenTelemetry</span><span class="tag">Loki</span><span class="tag">Jaeger</span>
+        </div>
+      </div>
+      <div class="skill-card">
+        <div class="skill-card-label">Languages &amp; Scripting</div>
+        <div class="skill-tags">
+          <span class="tag">Python</span><span class="tag">Go</span><span class="tag">Bash</span>
+          <span class="tag">YAML</span><span class="tag">HCL</span><span class="tag">SQL</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXPERIENCE -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">03</span>
+      <h2 class="section-title">Experience</h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="exp-list">
+
+      <div class="exp-item">
+        <div class="exp-date-col">
+          <div class="exp-period">Jan 2022<br>Present</div>
+          <span class="exp-current">CURRENT</span>
+        </div>
+        <div>
+          <div class="exp-role">Senior DevOps Engineer</div>
+          <div class="exp-company">Acme Corp · Full-time · Remote</div>
+          <ul class="exp-bullets">
+            <li>Led end-to-end migration of 60+ microservices from EC2 to EKS, reducing infrastructure costs by 35% and deploy time by 80%</li>
+            <li>Designed and implemented a GitOps self-service platform using ArgoCD and Helm, enabling teams to ship with zero ops involvement</li>
+            <li>Architected multi-region active-active DR strategy achieving RTO &lt; 15 min and RPO &lt; 5 min across all production services</li>
+            <li>Built centralized observability stack (Prometheus + Grafana + Loki) with automated runbooks, reducing MTTR by 60%</li>
+          </ul>
+          <div class="exp-tags">
+            <span class="exp-tag">AWS</span><span class="exp-tag">Kubernetes</span><span class="exp-tag">Terraform</span>
+            <span class="exp-tag">ArgoCD</span><span class="exp-tag">Python</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="exp-item">
+        <div class="exp-date-col">
+          <div class="exp-period">Mar 2019<br>Dec 2021</div>
+        </div>
+        <div>
+          <div class="exp-role">DevOps Engineer</div>
+          <div class="exp-company">Startup Inc · Full-time · San Francisco</div>
+          <ul class="exp-bullets">
+            <li>Provisioned and maintained Kubernetes clusters across dev / staging / production using Terraform and GKE</li>
+            <li>Implemented centralized logging with ELK stack and on-call alerting with Prometheus + PagerDuty — zero alert fatigue</li>
+            <li>Integrated security scanning (Trivy, Snyk) into CI pipelines, reducing critical CVE exposure by 60%</li>
+            <li>Owned the on-call rotation and authored comprehensive runbooks that cut incident resolution time by half</li>
+          </ul>
+          <div class="exp-tags">
+            <span class="exp-tag">GCP</span><span class="exp-tag">GKE</span><span class="exp-tag">Terraform</span>
+            <span class="exp-tag">ELK</span><span class="exp-tag">Ansible</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="exp-item">
+        <div class="exp-date-col">
+          <div class="exp-period">Jun 2016<br>Feb 2019</div>
+        </div>
+        <div>
+          <div class="exp-role">Systems Administrator</div>
+          <div class="exp-company">TechBase LLC · Full-time · New York</div>
+          <ul class="exp-bullets">
+            <li>Managed Linux/Windows server fleet of 200+ nodes, sustaining 99.9% availability across all critical services</li>
+            <li>Automated routine operational tasks in Python and Bash, recovering ~12 hrs/week of manual engineering time</li>
+            <li>Designed and executed bare-metal to AWS cloud migration plan for core data services, completed 3 weeks ahead of schedule</li>
+          </ul>
+          <div class="exp-tags">
+            <span class="exp-tag">Linux</span><span class="exp-tag">AWS</span><span class="exp-tag">Python</span><span class="exp-tag">Bash</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- CERTIFICATIONS -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">04</span>
+      <h2 class="section-title">Certifications</h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="cert-grid">
+      <div class="cert-card">
+        <div class="cert-provider">Amazon Web Services</div>
+        <div class="cert-name">Solutions Architect — Professional</div>
+        <div class="cert-year">2023</div>
+      </div>
+      <div class="cert-card">
+        <div class="cert-provider">CNCF</div>
+        <div class="cert-name">Certified Kubernetes Administrator (CKA)</div>
+        <div class="cert-year">2022</div>
+      </div>
+      <div class="cert-card">
+        <div class="cert-provider">HashiCorp</div>
+        <div class="cert-name">Terraform Associate</div>
+        <div class="cert-year">2021</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EDUCATION -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">05</span>
+      <h2 class="section-title">Education</h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="edu-card">
+      <div>
+        <div class="edu-degree">B.S. Computer Science</div>
+        <div class="edu-school">University of California, Berkeley · GPA 3.8 / 4.0</div>
+      </div>
+      <div class="edu-year">2012 – 2016</div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-name">Alex Chen</div>
+    <div class="footer-copy">© 2025 · alexchen.dev</div>
+  </footer>
+
+</div>
+</body>
+</html>

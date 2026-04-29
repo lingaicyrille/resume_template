@@ -2,32 +2,75 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { ArrowRight, ArrowLeft, Eye, EyeOff, CheckCircle } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 const CONTINENTS = [
-  { value: 'AF', label: 'Afrique' },
-  { value: 'EU', label: 'Europe' },
-  { value: 'NA', label: 'Amérique du Nord' },
-  { value: 'SA', label: 'Amérique du Sud' },
-  { value: 'AS', label: 'Asie' },
-  { value: 'OC', label: 'Océanie' },
-  { value: 'ME', label: 'Moyen-Orient' },
+  { value: 'AF', label: '🌍 Afrique' },
+  { value: 'EU', label: '🌍 Europe' },
+  { value: 'NA', label: '🌎 Amérique du Nord' },
+  { value: 'SA', label: '🌎 Amérique du Sud' },
+  { value: 'AS', label: '🌏 Asie' },
+  { value: 'OC', label: '🌏 Océanie' },
+  { value: 'ME', label: '🌍 Moyen-Orient' },
 ]
+
+const LANGUAGES = [
+  { value: 'fr', label: 'Français' },
+  { value: 'en', label: 'English' },
+  { value: 'di', label: 'Dioula' },
+]
+
+const STEPS = ['Identité', 'Localisation', 'Compte']
+
+type FormData = {
+  first_name: string
+  last_name: string
+  email: string
+  password: string
+  password_confirm: string
+  country_of_residence: string
+  city: string
+  continent: string
+  preferred_language: string
+}
 
 export default function RegisterPage() {
   const router = useRouter()
-  const [form, setForm] = useState({
-    email: '', password: '', password_confirm: '',
-    first_name: '', last_name: '',
+  const [step, setStep] = useState(0)
+  const [showPwd, setShowPwd] = useState(false)
+  const [form, setForm] = useState<FormData>({
+    first_name: '', last_name: '', email: '',
+    password: '', password_confirm: '',
     country_of_residence: '', city: '', continent: '',
     preferred_language: 'fr',
   })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const set = (key: string, value: string) => setForm(f => ({ ...f, [key]: value }))
+  const set = (key: keyof FormData, val: string) => setForm(f => ({ ...f, [key]: val }))
+
+  const validateStep = () => {
+    setError('')
+    if (step === 0 && (!form.first_name || !form.last_name)) {
+      setError('Prénom et nom sont requis.'); return false
+    }
+    if (step === 2 && form.password !== form.password_confirm) {
+      setError('Les mots de passe ne correspondent pas.'); return false
+    }
+    if (step === 2 && form.password.length < 8) {
+      setError('Le mot de passe doit contenir au moins 8 caractères.'); return false
+    }
+    return true
+  }
+
+  const next = () => { if (validateStep()) setStep(s => s + 1) }
+  const back = () => { setError(''); setStep(s => s - 1) }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!validateStep()) return
     setLoading(true)
     setError('')
     try {
@@ -38,10 +81,8 @@ export default function RegisterPage() {
       })
       const data = await res.json()
       if (!res.ok) {
-        const messages = Object.entries(data)
-          .map(([k, v]) => `${k}: ${(v as string[]).join(', ')}`)
-          .join(' | ')
-        throw new Error(messages)
+        const msgs = Object.entries(data).map(([k, v]) => `${k}: ${(v as string[]).join(', ')}`).join(' | ')
+        throw new Error(msgs)
       }
       router.push('/auth/login?registered=1')
     } catch (err: unknown) {
@@ -51,83 +92,203 @@ export default function RegisterPage() {
     }
   }
 
+  const inputClass = 'w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ci-orange/20 focus:border-ci-orange transition-all bg-gray-50 focus:bg-white'
+  const labelClass = 'block text-sm font-semibold text-gray-700 mb-1.5'
+
   return (
-    <div className="min-h-screen bg-orange-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-lg">
-        <div className="text-center mb-8">
-          <Link href="/" className="text-4xl font-black text-[#F77F00]">PDI</Link>
-          <h1 className="text-2xl font-bold text-gray-800 mt-2">Créer un compte</h1>
-          <p className="text-gray-500 text-sm mt-1">Rejoignez la communauté ivoirienne mondiale</p>
+    <div className="min-h-screen flex">
+
+      {/* ── Left panel ── */}
+      <div className="hidden lg:flex lg:w-5/12 bg-[#0D1117] flex-col justify-between p-12 relative overflow-hidden">
+        <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-ci-orange/20 rounded-full blur-[80px] pointer-events-none" />
+        <div className="absolute bottom-1/4 right-1/4 w-56 h-56 bg-ci-green/15 rounded-full blur-[60px] pointer-events-none" />
+
+        <Link href="/" className="relative flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-ci flex items-center justify-center shadow-orange">
+            <span className="text-white font-black">P</span>
+          </div>
+          <span className="text-white font-black text-xl">PDI</span>
+        </Link>
+
+        <div className="relative">
+          <h2 className="text-4xl font-black text-white leading-tight mb-5">
+            Rejoignez<br />
+            <span className="gradient-text-ci">la diaspora</span>
+          </h2>
+          <p className="text-white/50 mb-8 text-sm leading-relaxed">
+            Créez votre profil et rejoignez des milliers d'Ivoiriens à travers le monde.
+          </p>
+
+          {/* Step progress visual */}
+          <div className="space-y-3">
+            {STEPS.map((s, i) => (
+              <div key={s} className={cn(
+                'flex items-center gap-3 text-sm transition-all',
+                i < step ? 'text-ci-green' : i === step ? 'text-white' : 'text-white/30'
+              )}>
+                <div className={cn(
+                  'w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 font-bold text-xs transition-all',
+                  i < step ? 'bg-ci-green text-white' : i === step ? 'bg-ci-orange text-white' : 'bg-white/10 text-white/30'
+                )}>
+                  {i < step ? <CheckCircle size={14} /> : i + 1}
+                </div>
+                {s}
+              </div>
+            ))}
+          </div>
         </div>
 
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-600 rounded-lg p-3 mb-4 text-sm">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Prénom</label>
-              <input type="text" required value={form.first_name} onChange={e => set('first_name', e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F77F00]/40 focus:border-[#F77F00]" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Nom</label>
-              <input type="text" required value={form.last_name} onChange={e => set('last_name', e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F77F00]/40 focus:border-[#F77F00]" />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input type="email" required value={form.email} onChange={e => set('email', e.target.value)}
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F77F00]/40 focus:border-[#F77F00]"
-              placeholder="votre@email.com" />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Continent</label>
-              <select value={form.continent} onChange={e => set('continent', e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F77F00]/40 focus:border-[#F77F00]">
-                <option value="">Choisir...</option>
-                {CONTINENTS.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Pays de résidence</label>
-              <input type="text" value={form.country_of_residence} onChange={e => set('country_of_residence', e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F77F00]/40 focus:border-[#F77F00]"
-                placeholder="Ex: France" />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Mot de passe</label>
-            <input type="password" required value={form.password} onChange={e => set('password', e.target.value)}
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F77F00]/40 focus:border-[#F77F00]"
-              placeholder="Minimum 8 caractères" />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Confirmer le mot de passe</label>
-            <input type="password" required value={form.password_confirm} onChange={e => set('password_confirm', e.target.value)}
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F77F00]/40 focus:border-[#F77F00]" />
-          </div>
-
-          <button type="submit" disabled={loading}
-            className="w-full py-3 bg-[#F77F00] text-white font-semibold rounded-lg hover:bg-orange-600 transition disabled:opacity-50">
-            {loading ? 'Création du compte...' : 'Créer mon compte'}
-          </button>
-        </form>
-
-        <p className="text-center text-gray-500 mt-6 text-sm">
-          Déjà membre ?{' '}
-          <Link href="/auth/login" className="text-[#F77F00] font-semibold hover:underline">Se connecter</Link>
-        </p>
+        <div className="relative flex gap-0 rounded-full overflow-hidden w-16 h-2 opacity-60">
+          <div className="flex-1 bg-ci-orange" />
+          <div className="flex-1 bg-white" />
+          <div className="flex-1 bg-ci-green" />
+        </div>
       </div>
+
+      {/* ── Right form panel ── */}
+      <div className="flex-1 flex flex-col items-center justify-center bg-white px-6 py-12">
+        <div className="w-full max-w-md">
+
+          {/* Mobile logo */}
+          <div className="lg:hidden flex justify-center mb-8">
+            <Link href="/" className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-gradient-ci flex items-center justify-center">
+                <span className="text-white font-black text-sm">P</span>
+              </div>
+              <span className="font-black text-xl text-gray-900">PDI</span>
+            </Link>
+          </div>
+
+          {/* Step indicator (mobile) */}
+          <div className="flex gap-1.5 mb-6 lg:hidden">
+            {STEPS.map((_, i) => (
+              <div key={i} className={cn(
+                'h-1 flex-1 rounded-full transition-all',
+                i <= step ? 'bg-ci-orange' : 'bg-gray-200'
+              )} />
+            ))}
+          </div>
+
+          <div className="mb-7">
+            <div className="text-xs font-bold text-ci-orange uppercase tracking-widest mb-1">
+              Étape {step + 1} sur {STEPS.length} — {STEPS[step]}
+            </div>
+            <h1 className="text-3xl font-black text-gray-900">
+              {step === 0 && 'Votre identité'}
+              {step === 1 && 'Votre localisation'}
+              {step === 2 && 'Créer votre compte'}
+            </h1>
+          </div>
+
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-600 rounded-xl p-3.5 mb-5 text-sm">
+              ⚠ {error}
+            </div>
+          )}
+
+          <form onSubmit={step < 2 ? (e) => { e.preventDefault(); next() } : handleSubmit} className="space-y-4">
+
+            {/* Step 0: Identity */}
+            {step === 0 && (
+              <>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className={labelClass}>Prénom *</label>
+                    <input type="text" required autoFocus value={form.first_name}
+                      onChange={e => set('first_name', e.target.value)} className={inputClass} />
+                  </div>
+                  <div>
+                    <label className={labelClass}>Nom *</label>
+                    <input type="text" required value={form.last_name}
+                      onChange={e => set('last_name', e.target.value)} className={inputClass} />
+                  </div>
+                </div>
+                <div>
+                  <label className={labelClass}>Langue préférée</label>
+                  <select value={form.preferred_language} onChange={e => set('preferred_language', e.target.value)} className={inputClass}>
+                    {LANGUAGES.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
+                  </select>
+                </div>
+              </>
+            )}
+
+            {/* Step 1: Location */}
+            {step === 1 && (
+              <>
+                <div>
+                  <label className={labelClass}>Continent</label>
+                  <select value={form.continent} onChange={e => set('continent', e.target.value)} className={inputClass}>
+                    <option value="">Sélectionner un continent...</option>
+                    {CONTINENTS.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className={labelClass}>Pays de résidence</label>
+                  <input type="text" value={form.country_of_residence} placeholder="Ex: France, Canada, Belgique..."
+                    onChange={e => set('country_of_residence', e.target.value)} className={inputClass} />
+                </div>
+                <div>
+                  <label className={labelClass}>Ville</label>
+                  <input type="text" value={form.city} placeholder="Ex: Paris, Montréal..."
+                    onChange={e => set('city', e.target.value)} className={inputClass} />
+                </div>
+              </>
+            )}
+
+            {/* Step 2: Account */}
+            {step === 2 && (
+              <>
+                <div>
+                  <label className={labelClass}>Adresse email *</label>
+                  <input type="email" required autoFocus value={form.email} placeholder="votre@email.com"
+                    onChange={e => set('email', e.target.value)} className={inputClass} />
+                </div>
+                <div>
+                  <label className={labelClass}>Mot de passe *</label>
+                  <div className="relative">
+                    <input type={showPwd ? 'text' : 'password'} required value={form.password}
+                      placeholder="Minimum 8 caractères"
+                      onChange={e => set('password', e.target.value)} className={cn(inputClass, 'pr-11')} />
+                    <button type="button" onClick={() => setShowPwd(!showPwd)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                      {showPwd ? <EyeOff size={17} /> : <Eye size={17} />}
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <label className={labelClass}>Confirmer le mot de passe *</label>
+                  <input type="password" required value={form.password_confirm}
+                    onChange={e => set('password_confirm', e.target.value)} className={inputClass} />
+                </div>
+              </>
+            )}
+
+            {/* Navigation buttons */}
+            <div className="flex gap-3 pt-2">
+              {step > 0 && (
+                <Button type="button" variant="ghost" onClick={back} className="flex-1 py-3">
+                  <ArrowLeft size={17} /> Retour
+                </Button>
+              )}
+              <Button
+                type="submit"
+                loading={loading}
+                className={cn('py-3', step === 0 ? 'w-full' : 'flex-1')}
+                size="lg"
+              >
+                {!loading && (step < 2 ? 'Continuer' : 'Créer mon compte')}
+                {!loading && <ArrowRight size={17} />}
+              </Button>
+            </div>
+          </form>
+
+          <p className="text-center text-sm text-gray-500 mt-6">
+            Déjà membre ?{' '}
+            <Link href="/auth/login" className="text-ci-orange font-semibold hover:underline">Se connecter</Link>
+          </p>
+        </div>
+      </div>
+
     </div>
   )
 }
